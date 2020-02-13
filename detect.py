@@ -9,6 +9,7 @@ import sys
 import time
 import datetime
 import argparse
+import numpy as np
 
 from PIL import Image
 
@@ -20,6 +21,8 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.ticker import NullLocator
+
+import pdb
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -33,12 +36,14 @@ if __name__ == "__main__":
     parser.add_argument("--n_cpu", type=int, default=0, help="number of cpu threads to use during batch generation")
     parser.add_argument("--img_size", type=int, default=416, help="size of each image dimension")
     parser.add_argument("--checkpoint_model", type=str, help="path to checkpoint model")
+    parser.add_argument("--out_dir", type=str, default="./output", help="path to output")
+    parser.add_argument("--specify_object", type=str, default=None, help="Specify object to detect")
     opt = parser.parse_args()
     print(opt)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    os.makedirs("output", exist_ok=True)
+    os.makedirs(opt.out_dir, exist_ok=True)
 
     # Set up model
     model = Darknet(opt.model_def, img_size=opt.img_size).to(device)
@@ -110,6 +115,7 @@ if __name__ == "__main__":
             unique_labels = detections[:, -1].cpu().unique()
             n_cls_preds = len(unique_labels)
             bbox_colors = random.sample(colors, n_cls_preds)
+            idx_det = 0
             for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
 
                 print("\t+ Label: %s, Conf: %.5f" % (classes[int(cls_pred)], cls_conf.item()))
@@ -131,6 +137,22 @@ if __name__ == "__main__":
                     verticalalignment="top",
                     bbox={"color": color, "pad": 0},
                 )
+
+                # Save cropped detection
+                class_name = classes[int(cls_pred)]
+
+                img_h, img_w = img.shape[:2]
+                x1_idx = int(np.floor(float(x1))) if x1 >= 0 else 0
+                y1_idx = int(np.floor(float(y1))) if y1 >= 0 else 0
+                x2_idx = int(np.floor(float(x2))) if x2 <= img_w else img_w
+                y2_idx = int(np.floor(float(y2))) if y2 <= img_h else img_h
+                det_img = Image.fromarray(img[y1_idx:y2_idx, x1_idx:x2_idx].astype(np.uint8))
+                det_filename = "_".join((
+                        path.split("/")[-1].split(".")[0],
+                        "detected_{0:d}_{1:s}.png".format(idx_det, class_name)
+                ))
+                det_img.save(os.path.join(opt.out_dir, det_filename))
+                idx_det += 1
 
         # Save generated image with detections
         plt.axis("off")
