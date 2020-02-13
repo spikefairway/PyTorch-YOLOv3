@@ -1,6 +1,12 @@
 # PyTorch-YOLOv3
 A minimal PyTorch implementation of YOLOv3, with support for training, inference and evaluation.
 
+This repository is a version revised as follows:
+
+- Enable to save cropped images for detected objects.
+- Enable to specify the object to crop.
+- Give input image paths with regular expression.
+
 ## Installation
 ##### Clone and install requirements
     $ git clone https://github.com/eriklindernoren/PyTorch-YOLOv3
