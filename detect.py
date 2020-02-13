@@ -140,19 +140,19 @@ if __name__ == "__main__":
 
                 # Save cropped detection
                 class_name = classes[int(cls_pred)]
-
-                img_h, img_w = img.shape[:2]
-                x1_idx = int(np.floor(float(x1))) if x1 >= 0 else 0
-                y1_idx = int(np.floor(float(y1))) if y1 >= 0 else 0
-                x2_idx = int(np.floor(float(x2))) if x2 <= img_w else img_w
-                y2_idx = int(np.floor(float(y2))) if y2 <= img_h else img_h
-                det_img = Image.fromarray(img[y1_idx:y2_idx, x1_idx:x2_idx].astype(np.uint8))
-                det_filename = "_".join((
+                if opt.specify_object is not None and opt.specify_object == class_name:
+                    img_h, img_w = img.shape[:2]
+                    x1_idx = int(np.floor(float(x1))) if x1 >= 0 else 0
+                    y1_idx = int(np.floor(float(y1))) if y1 >= 0 else 0
+                    x2_idx = int(np.floor(float(x2))) if x2 <= img_w else img_w
+                    y2_idx = int(np.floor(float(y2))) if y2 <= img_h else img_h
+                    det_img = Image.fromarray(img[y1_idx:y2_idx, x1_idx:x2_idx].astype(np.uint8))
+                    det_filename = "_".join((
                         path.split("/")[-1].split(".")[0],
                         "detected_{0:d}_{1:s}.png".format(idx_det, class_name)
-                ))
-                det_img.save(os.path.join(opt.out_dir, det_filename))
-                idx_det += 1
+                    ))
+                    det_img.save(os.path.join(opt.out_dir, det_filename))
+                    idx_det += 1
 
         # Save generated image with detections
         plt.axis("off")
