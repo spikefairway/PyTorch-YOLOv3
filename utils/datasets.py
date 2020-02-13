@@ -6,6 +6,8 @@ import numpy as np
 from PIL import Image
 import torch
 import torch.nn.functional as F
+import pdb
+import time
 
 from utils.augmentations import horisontal_flip
 from torch.utils.data import Dataset
@@ -37,14 +39,24 @@ def random_resize(images, min_size=288, max_size=448):
 
 
 class ImageFolder(Dataset):
-    def __init__(self, folder_path, img_size=416, in_format='jpg'):
-        self.files = sorted(glob.glob("{0:s}/*.{1:s}".format(folder_path, in_format)))
+    def __init__(self, image_paths, img_size=416):
+        self.files = sorted(image_paths)
         self.img_size = img_size
 
     def __getitem__(self, index):
-        img_path = self.files[index % len(self.files)]
+        #img_path = self.files[index % len(self.files)]
+        img_path = self.files[index]
         # Extract image as PyTorch tensor
-        img = transforms.ToTensor()(Image.open(img_path))
+        img_pil = Image.open(img_path)
+        img = transforms.ToTensor()(img_pil)
+        img_size = img.size()
+        try:
+            assert(img_size[0] == 3)
+        except AssertionError as err:
+            print('PIL Image shape : [{0}, {1}]'.format(*img_pil.size))
+            print('PIL Image mode : {0}'.format(img_pil.mode))
+            print('Tensor shape : [{0}, {1}, {2}]'.format(*img_size))
+            raise AssertionError(err)
         # Pad to square resolution
         img, _ = pad_to_square(img, 0)
         # Resize

@@ -26,7 +26,7 @@ import pdb
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_folder", type=str, default="data/samples", help="path to dataset")
+    parser.add_argument("--image_path", type=str, default="data/samples", help="path to dataset", nargs='+')
     parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
     parser.add_argument("--weights_path", type=str, default="weights/yolov3.weights", help="path to weights file")
     parser.add_argument("--class_path", type=str, default="data/coco.names", help="path to class label file")
@@ -38,7 +38,6 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint_model", type=str, help="path to checkpoint model")
     parser.add_argument("--out_dir", type=str, default="./output", help="path to output")
     parser.add_argument("--specify_object", type=str, default=None, help="Specify object to detect")
-    parser.add_argument("--input_format", type=str, default='jpg', help="Data format for input image")
     opt = parser.parse_args()
     print(opt)
 
@@ -59,7 +58,7 @@ if __name__ == "__main__":
     model.eval()  # Set in evaluation mode
 
     dataloader = DataLoader(
-        ImageFolder(opt.image_folder, img_size=opt.img_size, in_format=opt.input_format),
+        ImageFolder(opt.image_path, img_size=opt.img_size),
         batch_size=opt.batch_size,
         shuffle=False,
         num_workers=opt.n_cpu,
@@ -75,6 +74,7 @@ if __name__ == "__main__":
     print("\nPerforming object detection:")
     prev_time = time.time()
     for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
+        print("Input_path : {0:s}".format(img_paths[0]))
         # Configure input
         input_imgs = Variable(input_imgs.type(Tensor))
 
@@ -160,5 +160,5 @@ if __name__ == "__main__":
         plt.gca().xaxis.set_major_locator(NullLocator())
         plt.gca().yaxis.set_major_locator(NullLocator())
         filename = path.split("/")[-1].split(".")[0]
-        plt.savefig(f"output/{filename}.png", bbox_inches="tight", pad_inches=0.0)
+        plt.savefig(os.path.join(opt.out_dir, "{filename}.png"), bbox_inches="tight", pad_inches=0.0)
         plt.close()
