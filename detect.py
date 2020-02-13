@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint_model", type=str, help="path to checkpoint model")
     parser.add_argument("--out_dir", type=str, default="./output", help="path to output")
     parser.add_argument("--specify_object", type=str, default=None, help="Specify object to detect")
+    parser.add_argument("--input_format", type=str, default='jpg', help="Data format for input image")
     opt = parser.parse_args()
     print(opt)
 
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     model.eval()  # Set in evaluation mode
 
     dataloader = DataLoader(
-        ImageFolder(opt.image_folder, img_size=opt.img_size),
+        ImageFolder(opt.image_folder, img_size=opt.img_size, in_format=opt.input_format),
         batch_size=opt.batch_size,
         shuffle=False,
         num_workers=opt.n_cpu,
